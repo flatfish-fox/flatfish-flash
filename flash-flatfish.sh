@@ -11,12 +11,15 @@
 # 
 # Author: William Liang
 #
-# Date: $Date: 2014/06/19 05:40:49 $
-# Version: $Revision: 1.4 $
+# Date: $Date: 2014/06/21 05:19:40 $
+# Version: $Revision: 1.5 $
 #
 # History:
 #
 # $Log: flash-flatfish,v $
+# Revision 1.5  2014/06/21 05:19:40  wyliang
+# Fix: 1. The bug of wrong B2G source path detection. 2. Solve the case when the udev rule is not well set which makes the fastboot fail to run.
+#
 # Revision 1.4  2014/06/19 05:40:49  wyliang
 # Allow the device to already exist in fastboot mode; fix some bugs; add some new checkings
 #
@@ -35,7 +38,9 @@ OUT=out/target/product/flatfish
 BOOT=boot.img 
 SYSTEM=system.img 
 DATA=userdata.img 
-B2G=""
+B2G_DIR=""
+FBT_SUDO=""
+IN_B2G=1
 
 usage() {
   PROG=`basename $0`
@@ -68,12 +73,12 @@ run() {
 
 # Apply B2G environment
 apply_b2g_env() {
-  [ ! -r "$B2G/build/envsetup.sh" ] && return
+  [ ! -r "$B2G_DIR/build/envsetup.sh" ] && return
 
-  printf "B2G found, setup the flatfish build environment to enable 'adb' and 'fastboot' ... "
+  printf "B2G_DIR found, setup the flatfish build environment to enable 'adb' and 'fastboot' ... "
   (
-    pushd $B2G > /dev/null
-    run source $B2G/build/envsetup.sh
+    pushd $B2G_DIR
+    run source $B2G_DIR/build/envsetup.sh
     lunch 5
     popd 
   ) > /dev/null
@@ -83,10 +88,10 @@ apply_b2g_env() {
 # File checking 
 check_images() {
   printf "\n--- Image files checking ---\n"
-  if [ -n "$OUT" ]; then
-    [ ! -d "$OUT" ] && echo "Error: '$OUT' is not a directory!" && usage
+  if [ "$IN_B2G" = 0 ]; then
+    [ ! -d "$OUT" ] && echo "Error: the specified directory '$OUT' is not a directory!" && usage
   else
-    echo "No specified image directory. Try to check if we are in the root directory of B2G."
+    echo "No specified image directory. We are supposed to be in the root directory of B2G. Verify the path now."
     if [ -d device/allwinners/flatfish ]; then # Internal source
       [ ! -f "$OUT/$BOOT" ] && echo "Error: '$OUT/$BOOT' does not exist." && usage
     elif [ ! -d device/allwinner/flatfish ]; then # open source
@@ -139,17 +144,22 @@ adb_to_fastboot() {
   fi
 
   # wait for the fastboot to take effect
-  echo "Wait for 10 seconds for the device to get ready in the fastboot mode ... "
-  i=9; while [ $i -gt 0 ]; do printf "\r$i"; i=$(($i-1)); sleep 1; done
-  echo "Done."
+  printf "Wait for 10 seconds for the device to get ready in the fastboot mode ...  "
+  i=9; while [ $i -gt 0 ]; do printf "\b$i"; i=$(($i-1)); sleep 1; done
+  printf "\bDone.\n"
 }
 
 # Try to use fastboot directly
 check_fastboot() {
   printf "\n--- Let's see if it's already in the fastboot mode ---\n"
   
-  if fastboot devices | grep fastboot > /dev/null 2>&1; then
+  FBT_CHK=`fastboot devices`
+  if echo "$FBT_CHK" | grep fastboot > /dev/null 2>&1; then
     echo "Fastboot mode detected."
+    if echo "$FBT_CHK" | grep 'no permissions' > /dev/null 2>&1; then
+      echo "However, the udev rule for the device may not be well configured. Will request the user to run in sudo mode"
+      FBT_SUDO="sudo"
+    fi
   else
     echo "Error: Fastboot mode is not detected. Check to see if the device is not turned on."
     echo "*Note: If it is powered but both 'adb' and 'fastboot' could not work, "
@@ -158,13 +168,20 @@ check_fastboot() {
   fi
 }
 
+echo "Start the flash-flatfish.sh procedure." 
+
 # Check for help option
 [ "$1" = "-h" ] && usage
 
-if [ -n "$1" ]; then
+if [ -z "$1" ]; then
+  IN_B2G=1
+  B2G_DIR="."
+  apply_b2g_env
+else
+  IN_B2G=0
   OUT="$1"
   if [ -n "$2" ]; then
-    B2G="$2"
+    B2G_DIR="$2"
     apply_b2g_env
   fi 
 fi
@@ -177,11 +194,14 @@ check_fastboot
 # Start the flashing process
 printf "\n--- Start to flash boot, system, and data partitions ---\n"
 
-[ -f "$OUT/$BOOT" ] && run fastboot flash boot $OUT/boot.img 
-run fastboot flash system $OUT/system.img 
-run fastboot flash data $OUT/userdata.img 
+FASTBOOT=`which fastboot`
+[ ! -x "$FASTBOOT" ] && echo "Error: Fastboot not found! Abort." && usage
+
+[ -f "$OUT/$BOOT" ] && run $FBT_SUDO $FASTBOOT flash boot $OUT/boot.img 
+run $FBT_SUDO $FASTBOOT flash system $OUT/system.img 
+run $FBT_SUDO $FASTBOOT flash data $OUT/userdata.img 
 
 # Reboot the system
 printf "\n--- Reboot the device ---\n"
 
-run fastboot reboot
+run $FBT_SUDO $FASTBOOT reboot
