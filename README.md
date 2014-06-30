@@ -13,19 +13,20 @@ Features:
 
 Author: William Liang
 
-=== Usage ===
-Usage: flash-flatfish.sh [-h] [<path_to_images> [<path_to_b2g_root>]]
-Options:
-  -h: help
-  <path_to_images>: default to ./out/target/product/flatfish/
-  <path_to_b2g_root>: path to the root of the B2G source, for using 'adb' only.  If 'adb' can be found in $PATH, this option can be ignored.
-Example:
+==============
+
+- Usage: flash-flatfish.sh [-h] [path_to_images [path_to_b2g_root]]
+  - path_to_images: Optional. Default to ./out/target/product/flatfish/. 
+  - path_to_b2g_root: Optional. Path to the root of the B2G source, for using 'adb' only. If 'adb' can be found in $PATH, this option can be ignored.
+  - -h: help
+
+- Example:
   1. Run in B2G root directory.
-    $ flash-flatfish.sh
+    - $ flash-flatfish.sh
   2. flash images in the current directory
-    $ flash-flatfish.sh .
+    - $ flash-flatfish.sh .
   3. flash images in ~/flatfish-images
-    $ flash-flatfish.sh ~/flatfish-images
-  3. flash images in ~/flatfish-images, and specify the source path of B2G for using 'adb'
-    $ flash-flatfish.sh ~/flatfish-images ~/dev_fxos/a31-b2g
+    - $ flash-flatfish.sh ~/flatfish-images
+  4. flash images in ~/flatfish-images, and specify the source path of B2G for using 'adb'
+    - $ flash-flatfish.sh ~/flatfish-images ~/dev_fxos/a31-b2g
 
