@@ -9,14 +9,26 @@
 #   - Convert Flatfish into fastboot mode, flash, and reboot it.
 #   - Allow the device to be running under the 'adb' or 'fastboot' mode.
 # 
-# Author: William Liang
+# Author: William Liang, Copyright 2014
 #
-# Date: $Date: 2014/06/21 05:19:40 $
-# Version: $Revision: 1.5 $
+# This program file is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for more details.
+#
+# Date: $Date: 2014/07/01 08:22:58 $
+# Version: $Revision: 1.6 $
 #
 # History:
 #
 # $Log: flash-flatfish,v $
+# Revision 1.6  2014/07/01 08:22:58  wyliang
+# Released by GPL
+#
 # Revision 1.5  2014/06/21 05:19:40  wyliang
 # Fix: 1. The bug of wrong B2G source path detection. 2. Solve the case when the udev rule is not well set which makes the fastboot fail to run.
 #
