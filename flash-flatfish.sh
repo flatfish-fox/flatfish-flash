@@ -20,6 +20,8 @@
 # FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 # for more details.
 #
+# GPL Source: https://github.com/flatfish-fox/flatfish-flash
+#
 # Date: $Date: 2014/07/01 08:22:58 $
 # Version: $Revision: 1.6 $
 #
